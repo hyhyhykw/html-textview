@@ -16,7 +16,11 @@ package org.sufficientlysecure.htmltextview;
 
 import android.text.Html;
 import android.text.Html.ImageGetter;
+import android.text.Spannable;
 import android.text.Spanned;
+import android.text.style.ClickableSpan;
+import android.text.style.ImageSpan;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,9 +32,11 @@ public class HtmlFormatter {
 
     public static Spanned formatHtml(@NonNull final HtmlFormatterBuilder builder) {
         return formatHtml(
-            builder.getHtml(), builder.getImageGetter(), builder.getClickableTableSpan(),
-            builder.getDrawTableLinkSpan(), builder::getOnClickATagListener, builder.getIndent(),
-            builder.isRemoveTrailingWhiteSpace()
+                builder.getHtml(), builder.getImageGetter(), builder.getClickableTableSpan(),
+                builder.getDrawTableLinkSpan(), builder::getOnClickATagListener,
+                builder.getOnClickImgListener(),
+                builder.getIndent(),
+                builder.isRemoveTrailingWhiteSpace()
         );
     }
 
@@ -38,7 +44,14 @@ public class HtmlFormatter {
         OnClickATagListener provideTagClickListener();
     }
 
-    public static Spanned formatHtml(@Nullable String html, ImageGetter imageGetter, ClickableTableSpan clickableTableSpan, DrawTableLinkSpan drawTableLinkSpan, TagClickListenerProvider tagClickListenerProvider, float indent, boolean removeTrailingWhiteSpace) {
+    public static Spanned formatHtml(@Nullable String html,
+                                     ImageGetter imageGetter,
+                                     ClickableTableSpan clickableTableSpan,
+                                     DrawTableLinkSpan drawTableLinkSpan,
+                                     TagClickListenerProvider tagClickListenerProvider,
+                                     OnClickImgListener onClickImgListener,
+                                     float indent,
+                                     boolean removeTrailingWhiteSpace) {
         final HtmlTagHandler htmlTagHandler = new HtmlTagHandler();
         htmlTagHandler.setClickableTableSpan(clickableTableSpan);
         htmlTagHandler.setDrawTableLinkSpan(drawTableLinkSpan);
@@ -52,6 +65,41 @@ public class HtmlFormatter {
             formattedHtml = removeHtmlBottomPadding(Html.fromHtml(html, imageGetter, new WrapperContentHandler(htmlTagHandler)));
         } else {
             formattedHtml = Html.fromHtml(html, imageGetter, new WrapperContentHandler(htmlTagHandler));
+        }
+
+        if (null!=onClickImgListener&&null != formattedHtml) {
+            if (formattedHtml instanceof Spannable){
+                Spannable spannable = (Spannable) formattedHtml;
+
+                ImageSpan[] spans = formattedHtml.getSpans(0, formattedHtml.length(), ImageSpan.class);
+                for (int i = 0; i < spans.length; i++) {
+                    ImageSpan span = spans[i];
+                    int start = formattedHtml.getSpanStart(span);
+                    int end = formattedHtml.getSpanEnd(span);
+                    int finalI = i;
+
+                    ClickableSpan clickableSpan = new ClickableSpan() {
+                        @Override
+                        public void onClick(@NonNull View widget) {
+                            onClickImgListener.onClick(widget, finalI);
+                        }
+                    };
+
+
+                    ClickableSpan[] click_spans = formattedHtml.getSpans(start, end, ClickableSpan.class);
+
+                    if(click_spans.length != 0) {
+                        // remove all click spans
+                        for(ClickableSpan c_span : click_spans) {
+                            spannable.removeSpan(c_span);
+                        }
+                    }
+
+                    spannable.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            }
+
+            }
         }
 
         return formattedHtml;

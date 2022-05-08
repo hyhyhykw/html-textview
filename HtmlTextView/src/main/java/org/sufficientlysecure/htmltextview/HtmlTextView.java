@@ -48,6 +48,9 @@ public class HtmlTextView extends JellyBeanSpanFixTextView {
 
     private boolean removeTrailingWhiteSpace = true;
 
+    @Nullable
+    private OnClickImgListener mOnClickImgListener;
+
     public HtmlTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
@@ -89,6 +92,10 @@ public class HtmlTextView extends JellyBeanSpanFixTextView {
         setHtml(convertStreamToString(inputStreamText), imageGetter);
     }
 
+    public void setOnClickImgListener(@Nullable OnClickImgListener onClickImgListener) {
+        mOnClickImgListener = onClickImgListener;
+    }
+
     /**
      * Parses String containing HTML to Android's Spannable format and displays it in this TextView.
      * Using the implementation of Html.ImageGetter provided.
@@ -100,7 +107,9 @@ public class HtmlTextView extends JellyBeanSpanFixTextView {
     public void setHtml(@NonNull String html, @Nullable Html.ImageGetter imageGetter) {
         Spanned styledText = HtmlFormatter.formatHtml(
                 html, imageGetter, clickableTableSpan, drawTableLinkSpan,
-                () -> onClickATagListener, indent, removeTrailingWhiteSpace
+                () -> onClickATagListener,
+                mOnClickImgListener,
+                indent, removeTrailingWhiteSpace
         );
         replaceQuoteSpans(styledText);
         setText(styledText);

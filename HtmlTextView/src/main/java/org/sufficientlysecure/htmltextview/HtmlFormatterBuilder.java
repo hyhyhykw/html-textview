@@ -24,6 +24,16 @@ public class HtmlFormatterBuilder {
     private ClickableTableSpan clickableTableSpan;
     private DrawTableLinkSpan drawTableLinkSpan;
     private OnClickATagListener onClickATagListener;
+    private OnClickImgListener mOnClickImgListener;
+
+    public OnClickImgListener getOnClickImgListener() {
+        return mOnClickImgListener;
+    }
+
+    public void setOnClickImgListener(OnClickImgListener onClickImgListener) {
+        mOnClickImgListener = onClickImgListener;
+    }
+
     private float indent = 24.0f;
     private boolean removeTrailingWhiteSpace = true;
 
