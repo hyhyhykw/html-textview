@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable;
  * @author 10585
  */
 public class UrlDrawable extends BitmapDrawable {
-    protected Drawable drawable;
+    public Drawable drawable;
     public UrlDrawable(){
         super(null,(Bitmap)null);
     }
